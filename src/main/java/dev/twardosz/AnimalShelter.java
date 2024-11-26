@@ -3,48 +3,68 @@ package dev.twardosz;
 import dev.twardosz.exception.AnimalAlreadyExists;
 import dev.twardosz.exception.AnimalNotFound;
 import dev.twardosz.exception.ShelterIsFull;
+import dev.twardosz.utils.HibernateUtils;
+import jakarta.persistence.*;
 
+import java.io.*;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class AnimalShelter {
-    private final String shelterName;
-    private final List<Animal> animals;
+@Entity
+public class AnimalShelter implements Serializable {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, unique = true)
+    private String shelterName;
+
     private final int capacity;
+
+    @OneToMany(mappedBy = "shelter", cascade = CascadeType.ALL, orphanRemoval = true)
+    private final List<Animal> animals = new ArrayList<>();
 
     public AnimalShelter(String shelterName, int capacity) {
         this.shelterName = shelterName;
         this.capacity = capacity;
-        animals = new ArrayList<>();
     }
 
-    public Animal addAnimal(Animal animal) throws ShelterIsFull, AnimalAlreadyExists {
+    public AnimalShelter() {
+        this("", 0);
+    }
+
+    public Animal addAnimal(String name, String species, AnimalCondition condition, int age, double price) throws ShelterIsFull, AnimalAlreadyExists {
         if (animals.size() >= capacity)
             throw new ShelterIsFull(shelterName);
+
+        Animal animal = new Animal(name, species, condition, age, price, this);
 
         if (animals.contains(animal))
             throw new AnimalAlreadyExists(shelterName, animal.getName());
 
         animals.add(animal);
+
+        HibernateUtils.getSession().persist(animal);
+        HibernateUtils.commit();
+
         return animal;
     }
 
     public void removeAnimal(Animal animal) {
         animals.remove(animal);
+        HibernateUtils.getSession().delete(animal);
+        HibernateUtils.commit();
+    }
+
+    public Long getId() {
+        return id;
     }
 
     public Animal getAnimal(int index) {
         return animals.get(index);
-    }
-
-    public Animal getAnimal(Animal animal) throws AnimalNotFound {
-        if (!animals.remove(animal))
-            throw new AnimalNotFound(animal.getName(), shelterName);
-
-        animal.setCondition(AnimalCondition.Adopted);
-        return animal;
     }
 
     public void changeCondition(Animal animal, AnimalCondition condition) {
@@ -106,5 +126,25 @@ public class AnimalShelter {
 
     public List<Animal> getAnimals() {
         return Collections.unmodifiableList(animals);
+    }
+
+    public void saveToCsv(String directory) {
+        Path dir = Path.of(directory);
+        dir.toFile().mkdirs();
+
+        try {
+            File file = dir.resolve(shelterName + ".csv").toFile();
+            if (!file.exists())
+                if (!file.createNewFile())
+                    throw new IOException("Cannot create file " + file.getName());
+
+            try (FileWriter fileWriter = new FileWriter(file)) {
+                for (Animal animal : animals) {
+                    fileWriter.write(animal.getId() + "," + animal.getName() + "," + animal.getSpecies() + "," + animal.getCondition() + "," + animal.getAge() + "," + animal.getPrice() + "\n");
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -1,25 +1,30 @@
 package dev.twardosz.ui;
 
 import dev.twardosz.AnimalShelter;
-import dev.twardosz.ShelterManager;
 
 import javax.swing.table.AbstractTableModel;
 import java.util.List;
 
 public class ShelterTableModel extends AbstractTableModel {
-    private final List<AnimalShelter> manager;
+    private List<AnimalShelter> shelters;
     private final String[] columnNames = {"Name", "Capacity"};
 
-    public ShelterTableModel(ShelterManager manager) {
-        this.manager = manager.getShelters();
+    public ShelterTableModel(List<AnimalShelter> shelters) {
+        this.shelters = shelters;
     }
-    public ShelterTableModel(List<AnimalShelter> manager) {
-        this.manager = manager;
+
+    public AnimalShelter get(int rowIndex) {
+        return shelters.get(rowIndex);
+    }
+
+    public void update(List<AnimalShelter> shelters) {
+        this.shelters = shelters;
+        fireTableDataChanged();
     }
 
     @Override
     public int getRowCount() {
-        return manager.size();
+        return shelters.size();
     }
 
     @Override
@@ -29,7 +34,7 @@ public class ShelterTableModel extends AbstractTableModel {
 
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
-        AnimalShelter shelter = manager.get(rowIndex);
+        AnimalShelter shelter = shelters.get(rowIndex);
         return switch (columnIndex) {
             case 0 -> shelter.getShelterName();
             case 1 -> shelter.getCapacity();

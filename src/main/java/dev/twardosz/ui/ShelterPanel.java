@@ -4,8 +4,8 @@ import dev.twardosz.Animal;
 import dev.twardosz.AnimalCondition;
 import dev.twardosz.AnimalShelter;
 import dev.twardosz.ShelterManager;
-import dev.twardosz.exception.AnimalNotFound;
 import dev.twardosz.exception.ShelterAlreadyExists;
+import dev.twardosz.exception.ShelterNotFound;
 
 import javax.swing.*;
 import java.awt.*;
@@ -20,17 +20,18 @@ public class ShelterPanel extends JPanel {
 
     private final JTable shelterTable;
     private final JTable animalTable;
+
     private ShelterTableModel shelterTableModel;
+    private AnimalTableModel animalTableModel;
+
     private final JTextField filterTextField;
     private final JComboBox<String> stateComboBox;
-
-    private AnimalTableModel animalTableModel;
 
     public ShelterPanel(ShelterManager manager, JFrame frame, boolean admin) {
         this.frame = frame;
         this.manager = manager;
 
-        this.shelterTableModel = new ShelterTableModel(manager);
+        this.shelterTableModel = new ShelterTableModel(manager.getShelters());
         this.animalTableModel = new AnimalTableModel(new ArrayList<>());
 
         setLayout(new BorderLayout());
@@ -107,7 +108,7 @@ public class ShelterPanel extends JPanel {
             JOptionPane.showMessageDialog(frame, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        shelterTableModel.fireTableDataChanged();
+        shelterTableModel.update(manager.getShelters());
     }
 
     private void addAnimal() {
@@ -131,56 +132,67 @@ public class ShelterPanel extends JPanel {
         int age = Integer.parseInt(JOptionPane.showInputDialog("Enter Age:"));
         double price = Double.parseDouble(JOptionPane.showInputDialog("Enter Price:"));
 
-        Animal newAnimal = new Animal(name, species, condition, age, price);
-        AnimalShelter selectedShelter = manager.getShelter(shelterTable.getSelectedRow());
         try {
-            selectedShelter.addAnimal(newAnimal);
+            AnimalShelter selectedShelter = manager.getShelter(shelterTableModel.get(shelterTable.getSelectedRow()).getId());
+            selectedShelter.addAnimal(name, species, condition, age, price);
+
+            animalTableModel.update(selectedShelter.getAnimals());
         } catch (Exception e) {
             JOptionPane.showMessageDialog(frame, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-            return;
         }
-
-        animalTableModel.fireTableDataChanged();
     }
 
     private void removeShelter() {
         if (shelterTable.getSelectedRow() != -1) {
-            manager.removeShelter(shelterTable.getSelectedRow());
-            shelterTableModel.fireTableDataChanged();
+            try {
+                manager.removeShelter(shelterTableModel.get(shelterTable.getSelectedRow()).getId());
+                shelterTableModel.update(manager.getShelters());
+            } catch (ShelterNotFound e) {
+                JOptionPane.showMessageDialog(frame, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 
     private void removeAnimal() {
         if (animalTable.getSelectedRow() != -1) {
-            AnimalShelter selectedShelter = manager.getShelter(shelterTable.getSelectedRow());
-            Animal animal = selectedShelter.getAnimal(animalTable.getSelectedRow());
-            selectedShelter.removeAnimal(animal);
-            animalTableModel.fireTableDataChanged();
+            try {
+                AnimalShelter selectedShelter = manager.getShelter(shelterTableModel.get(shelterTable.getSelectedRow()).getId());
+                Animal animal = selectedShelter.getAnimal(animalTable.getSelectedRow());
+                selectedShelter.removeAnimal(animal);
+                animalTableModel.update(selectedShelter.getAnimals());
+            } catch (ShelterNotFound e) {
+                JOptionPane.showMessageDialog(frame, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 
     private void sortShelters() {
-        manager.sortShelters((shelter1, shelter2) -> shelter2.getShelterName().compareTo(shelter1.getShelterName()));
-        shelterTableModel.fireTableDataChanged();
+        var shalters = manager.getShelters();
+        shalters.sort((shelter1, shelter2) -> shelter2.getShelterName().compareTo(shelter1.getShelterName()));
+        shelterTableModel.update(shalters);
     }
 
     private void updateAnimalList() {
         if (shelterTable.getSelectedRow() != -1) {
-            AnimalShelter selectedShelter = manager.getShelter(shelterTable.getSelectedRow());
-            animalTableModel = new AnimalTableModel(selectedShelter);
-            animalTable.setModel(animalTableModel);
+            try {
+                AnimalShelter selectedShelter = manager.getShelter(shelterTableModel.get(shelterTable.getSelectedRow()).getId());
+                animalTableModel.update(selectedShelter.getAnimals());
+            } catch (ShelterNotFound e) {
+                JOptionPane.showMessageDialog(frame, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 
     private void filterList() {
         String filterText = filterTextField.getText().toLowerCase();
 
-        // Filtrowanie schronisk
-
-        AnimalShelter selectedShelter = null;
+        Long selectedShelterId;
 
         if (shelterTable.getSelectedRow() != -1)
-            selectedShelter = manager.getShelter(shelterTable.getSelectedRow());
+            selectedShelterId = shelterTableModel.get(shelterTable.getSelectedRow()).getId();
+        else {
+            selectedShelterId = -1L;
+        }
 
         java.util.List<AnimalShelter> filteredShelters = new ArrayList<>();
         for (AnimalShelter shelter : manager.getShelters()) {
@@ -190,14 +202,14 @@ public class ShelterPanel extends JPanel {
         }
 
 
-        shelterTableModel = new ShelterTableModel(filteredShelters);
-        shelterTable.setModel(shelterTableModel);
+        shelterTableModel.update(filteredShelters);
 
         // Filtrowanie zwierząt
-        if (selectedShelter == null) return;
+        if (selectedShelterId == -1L) return;
 
+        AnimalShelter selectedShelter = filteredShelters.stream().filter(shelter -> selectedShelterId.equals(shelter.getId())).findFirst().orElse(null);
+        if (selectedShelter == null) return;
         int index = filteredShelters.indexOf(selectedShelter);
-        if (index == -1) return;
 
         shelterTable.setRowSelectionInterval(index, index);
 
@@ -207,8 +219,7 @@ public class ShelterPanel extends JPanel {
                 filteredAnimals.add(animal);
             }
         }
-        animalTableModel = new AnimalTableModel(filteredAnimals);
-        animalTable.setModel(animalTableModel);
+        animalTableModel.update(filteredAnimals);
     }
 
     private void filterByState() {
@@ -217,17 +228,20 @@ public class ShelterPanel extends JPanel {
             return;
 
         if (shelterTable.getSelectedRow() != -1) {
-            AnimalShelter selectedShelter = manager.getShelter(shelterTable.getSelectedRow());
-            List<Animal> filteredAnimals = new ArrayList<>();
-            if (selectedState.equalsIgnoreCase("All"))
-                filteredAnimals = selectedShelter.getAnimals();
-            else
-                for (Animal animal : selectedShelter.getAnimals())
-                    if (animal.getCondition().toString().equalsIgnoreCase(selectedState))
-                        filteredAnimals.add(animal);
+            try {
+                AnimalShelter selectedShelter = manager.getShelter(shelterTableModel.get(shelterTable.getSelectedRow()).getId());
+                List<Animal> filteredAnimals = new ArrayList<>();
+                if (selectedState.equalsIgnoreCase("All"))
+                    filteredAnimals = selectedShelter.getAnimals();
+                else
+                    for (Animal animal : selectedShelter.getAnimals())
+                        if (animal.getCondition().toString().equalsIgnoreCase(selectedState))
+                            filteredAnimals.add(animal);
 
-            animalTableModel = new AnimalTableModel(filteredAnimals);
-            animalTable.setModel(animalTableModel);
+                animalTableModel.update(filteredAnimals);
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(frame, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 
@@ -242,14 +256,14 @@ public class ShelterPanel extends JPanel {
             return;
         }
 
-        AnimalShelter shelter = manager.getShelter(shelterTable.getSelectedRow());
 
         try {
-            shelter.getAnimal(shelter.getAnimal(animalTable.getSelectedRow()));
-        } catch (AnimalNotFound e) {
+            AnimalShelter shelter = manager.getShelter(shelterTableModel.get(shelterTable.getSelectedRow()).getId());
+            shelter.getAnimal(animalTable.getSelectedRow()).adopt();
+
+            animalTableModel.update(shelter.getAnimals());
+        } catch (Exception e) {
             JOptionPane.showMessageDialog(frame, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-            return;
         }
-        animalTableModel.fireTableDataChanged();
     }
 }

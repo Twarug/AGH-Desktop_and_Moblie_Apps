@@ -1,22 +1,48 @@
 package dev.twardosz;
 
-public class Animal implements Comparable<Animal> {
-    private final String name;
+import dev.twardosz.utils.HibernateUtils;
+import jakarta.persistence.*;
+
+import java.io.Serializable;
+
+@Entity
+public class Animal implements Comparable<Animal>, Serializable {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false)
+    private String name;
+
     private final String species;
     private AnimalCondition condition;
     private int age;
     private final double price;
 
-    public Animal(String name, String species, AnimalCondition condition, int age, double price) {
+    @ManyToOne
+    @JoinColumn(name = "shelter_id")
+    private AnimalShelter shelter;
+
+    public Animal(String name, String species, AnimalCondition condition, int age, double price, AnimalShelter shelter) {
         this.name = name;
         this.species = species;
         this.condition = condition;
         this.age = age;
         this.price = price;
+
+        this.shelter = shelter;
+    }
+
+    public Animal() {
+        this("", "", AnimalCondition.Healthy, 0, 0.0, null);
     }
 
     public void print() {
         System.out.println("Animal " + name + ": Species: " + species + ", Age: " + age + ", Condition: " + condition + ", Price: " + price);
+    }
+
+    public Long getId() {
+        return id;
     }
 
     public String getName() {
@@ -45,6 +71,14 @@ public class Animal implements Comparable<Animal> {
 
     public double getPrice() {
         return price;
+    }
+
+    public void adopt() {
+        setCondition(AnimalCondition.Adopted);
+        shelter = null;
+
+        HibernateUtils.getSession().persist(this);
+        HibernateUtils.commit();
     }
 
     @Override

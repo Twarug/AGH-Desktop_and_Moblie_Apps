@@ -13,11 +13,9 @@ public class AnimalTests {
     @BeforeEach
     public void setUp() throws ShelterIsFull, AnimalAlreadyExists {
         shelter = new AnimalShelter("Safe Haven", 50);
-        buddy = new Animal("Buddy", "Dog", AnimalCondition.Healthy, 3, 150.00);
-        Animal whiskers = new Animal("Whiskers", "Cat", AnimalCondition.Sick, 2, 80.00);
 
-        shelter.addAnimal(buddy);
-        shelter.addAnimal(whiskers);
+        buddy = shelter.addAnimal("Buddy", "Dog", AnimalCondition.Healthy, 3, 150.00);
+        shelter.addAnimal("Whiskers", "Cat", AnimalCondition.Sick, 2, 80.00);
     }
 
     @Test

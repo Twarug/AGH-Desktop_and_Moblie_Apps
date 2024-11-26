@@ -6,20 +6,25 @@ import javax.swing.table.AbstractTableModel;
 import java.util.List;
 
 public class AnimalTableModel extends AbstractTableModel {
-    private final List<Animal> shelter;
+    private List<Animal> animals;
     private final String[] columnNames = {"Name", "Species", "Condition", "Age", "Price"};
 
-    public AnimalTableModel(List<Animal> shelter) {
-        this.shelter = shelter;
+    public AnimalTableModel(List<Animal> animals) {
+        this.animals = animals;
     }
 
-    public AnimalTableModel(AnimalShelter shelter) {
-        this.shelter = shelter.getAnimals();
+    public Animal get(int rowIndex) {
+        return animals.get(rowIndex);
+    }
+
+    public void update(List<Animal> animals) {
+        this.animals = animals;
+        fireTableDataChanged();
     }
 
     @Override
     public int getRowCount() {
-        return shelter.size();
+        return animals.size();
     }
 
     @Override
@@ -29,7 +34,7 @@ public class AnimalTableModel extends AbstractTableModel {
 
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
-        Animal animal = shelter.get(rowIndex);
+        Animal animal = animals.get(rowIndex);
         return switch (columnIndex) {
             case 0 -> animal.getName();
             case 1 -> animal.getSpecies();

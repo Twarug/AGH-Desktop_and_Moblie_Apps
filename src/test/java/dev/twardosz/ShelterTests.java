@@ -4,6 +4,9 @@ import dev.twardosz.exception.AnimalAlreadyExists;
 import dev.twardosz.exception.ShelterIsFull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.util.concurrent.atomic.AtomicReference;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class ShelterTests {
@@ -13,15 +16,14 @@ public class ShelterTests {
     @BeforeEach
     public void setUp() throws ShelterIsFull, AnimalAlreadyExists {
         shelter = new AnimalShelter("Safe Haven", 50);
-        buddy = new Animal("Buddy", "Dog", AnimalCondition.Healthy, 3, 150.00);
-        shelter.addAnimal(buddy);
+        buddy = shelter.addAnimal("Buddy", "Dog", AnimalCondition.Healthy, 3, 150.00);
     }
 
     @Test
     public void testAddAnimal() {
-        Animal newAnimal = new Animal("Max", "Dog", AnimalCondition.Healthy, 1, 100.00);
-        assertDoesNotThrow(() -> shelter.addAnimal(newAnimal), "Adding an animal should not throw an exception.");
-        assertTrue(shelter.getAnimals().contains(newAnimal), "Animal should be added to the shelter.");
+        AtomicReference<Animal> newAnimal = new AtomicReference<>();
+        assertDoesNotThrow(() -> newAnimal.set(shelter.addAnimal("Max", "Dog", AnimalCondition.Healthy, 1, 100.00)), "Adding an animal should not throw an exception.");
+        assertTrue(shelter.getAnimals().contains(newAnimal.get()), "Animal should be added to the shelter.");
     }
 
     @Test
