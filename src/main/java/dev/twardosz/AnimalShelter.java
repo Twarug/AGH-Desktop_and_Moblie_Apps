@@ -1,6 +1,11 @@
 package dev.twardosz;
 
+import dev.twardosz.exception.AnimalAlreadyExists;
+import dev.twardosz.exception.AnimalNotFound;
+import dev.twardosz.exception.ShelterIsFull;
+
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -15,14 +20,12 @@ public class AnimalShelter {
         animals = new ArrayList<>();
     }
 
-    public Animal addAnimal(Animal animal){
+    public Animal addAnimal(Animal animal) throws ShelterIsFull, AnimalAlreadyExists {
         if (animals.size() >= capacity)
-            System.err.println("The shelter is full.");
+            throw new ShelterIsFull(shelterName);
 
-        if (animals.contains(animal)) {
-            System.out.println("Animal " + animal.getName() + " already exists in the shelter.");
-            return null;
-        }
+        if (animals.contains(animal))
+            throw new AnimalAlreadyExists(shelterName, animal.getName());
 
         animals.add(animal);
         return animal;
@@ -32,11 +35,13 @@ public class AnimalShelter {
         animals.remove(animal);
     }
 
-    public Animal getAnimal(Animal animal) {
-        if (!animals.remove(animal)) {
-            System.out.println("Animal " + animal.getName() + " does not exist in the shelter.");
-            return null;
-        }
+    public Animal getAnimal(int index) {
+        return animals.get(index);
+    }
+
+    public Animal getAnimal(Animal animal) throws AnimalNotFound {
+        if (!animals.remove(animal))
+            throw new AnimalNotFound(animal.getName(), shelterName);
 
         animal.setCondition(AnimalCondition.Adopted);
         return animal;
@@ -97,5 +102,9 @@ public class AnimalShelter {
 
     public int size() {
         return animals.size();
+    }
+
+    public List<Animal> getAnimals() {
+        return Collections.unmodifiableList(animals);
     }
 }

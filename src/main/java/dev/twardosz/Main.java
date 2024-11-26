@@ -1,7 +1,11 @@
 package dev.twardosz;
 
+import dev.twardosz.ui.ShelterAppUI;
+
+import javax.swing.*;
+
 public class Main {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         ShelterManager manager = new ShelterManager();
 
         // Create shelters
@@ -24,69 +28,8 @@ public class Main {
         happyPaws.addAnimal(new Animal("Ruby", "Hamster", AnimalCondition.Healthy, 15, 97.11));
         happyPaws.addAnimal(new Animal("Daisy", "Snake", AnimalCondition.Healthy, 4, 94.46));
 
-        System.out.println("------------------------------------------");
-        // Remove non-existing shelter
-        manager.removeShelter("Safe haven");
-        // Remove existing shelter
-        manager.removeShelter("Safe Haven");
-        manager.summary();
-
-        happyPaws.summary();
-
-        // Sort by Name
-        happyPaws.sortByName();
-        happyPaws.summary();
-
-        // Sort by price
-        happyPaws.sortByPrice();
-        happyPaws.summary();
-
-        // Change Age
-        buddy.print();
-        happyPaws.changeAge(buddy, 4);
-        buddy.print();
-
-        // Counts of animals in different states
-        System.out.println("Healthy animals: " + happyPaws.countByCondition(AnimalCondition.Healthy));
-        System.out.println("Sick animals: " + happyPaws.countByCondition(AnimalCondition.Sick));
-        System.out.println("Adopted animals: " + happyPaws.countByCondition(AnimalCondition.Adopted));
-        System.out.println("Quarantined animals: " + happyPaws.countByCondition(AnimalCondition.Quarantined));
-
-        // Search for an animal
-        Animal buddy2 = happyPaws.search("Buddy");
-        if (buddy2 != null)
-            buddy2.print();
-        else
-            System.out.println("Animal not found.");
-
-        // Search for an animal with a partial name
-        Animal buddy3 = happyPaws.searchPartial("Bud");
-        if (buddy3 != null)
-            buddy3.print();
-        else
-            System.out.println("Animal not found.");
-
-        // Get the animal with the highest age
-        Animal buddy4 = happyPaws.max();
-        if (buddy4 != null)
-            buddy4.print();
-        else
-            System.out.println("Animal not found.");
-
-        // Get an animal from a shelter
-        buddy = happyPaws.getAnimal(buddy);
-        if (buddy != null)
-            buddy.print();
-        else
-            System.out.println("Animal not found.");
-
-        // Remove an animal
-        happyPaws.removeAnimal(whiskers);
-
-        // Change an animal's condition
-        happyPaws.changeCondition(whiskers, AnimalCondition.Quarantined);
-
-        // Display summary
-        happyPaws.summary();
+        SwingUtilities.invokeLater(() -> {
+            SwingUtilities.invokeLater(() -> new ShelterAppUI(manager));
+        });
     }
 }
