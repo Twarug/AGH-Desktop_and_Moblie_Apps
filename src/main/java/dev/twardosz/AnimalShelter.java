@@ -1,17 +1,14 @@
 package dev.twardosz;
 
 import dev.twardosz.exception.AnimalAlreadyExists;
-import dev.twardosz.exception.AnimalNotFound;
 import dev.twardosz.exception.ShelterIsFull;
 import dev.twardosz.utils.HibernateUtils;
 import jakarta.persistence.*;
 
 import java.io.*;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.time.LocalDateTime;
+import java.util.*;
 
 @Entity
 public class AnimalShelter implements Serializable {
@@ -25,7 +22,10 @@ public class AnimalShelter implements Serializable {
     private final int capacity;
 
     @OneToMany(mappedBy = "shelter", cascade = CascadeType.ALL, orphanRemoval = true)
-    private final List<Animal> animals = new ArrayList<>();
+    private List<Animal> animals = new ArrayList<>();
+
+    @OneToMany(mappedBy = "shelter", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Rating> ratings = new ArrayList<>();
 
     public AnimalShelter(String shelterName, int capacity) {
         this.shelterName = shelterName;
@@ -146,5 +146,24 @@ public class AnimalShelter implements Serializable {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void addRating(int rating, String description) {
+        Rating ratingEntity = new Rating(this, rating, description, LocalDateTime.now());
+        ratings.add(ratingEntity);
+
+        HibernateUtils.getSession().persist(ratingEntity);
+        HibernateUtils.commit();
+    }
+
+    public double getAvgRating() {
+        if (ratings.isEmpty())
+            return 0;
+
+        return ratings.stream().map(Rating::getRating).reduce(0, Integer::sum) / (double)ratings.size();
+    }
+
+    public int getRatingCount() {
+        return ratings.size();
     }
 }

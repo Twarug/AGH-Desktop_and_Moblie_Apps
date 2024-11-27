@@ -20,5 +20,6 @@
         <!-- Klasy encji -->
         <mapping class="dev.twardosz.AnimalShelter"/>
         <mapping class="dev.twardosz.Animal"/>
+        <mapping class="dev.twardosz.Rating"/>
     </session-factory>
 </hibernate-configuration>

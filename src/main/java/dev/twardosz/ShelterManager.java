@@ -3,6 +3,9 @@ package dev.twardosz;
 import dev.twardosz.exception.ShelterAlreadyExists;
 import dev.twardosz.exception.ShelterNotFound;
 import dev.twardosz.utils.HibernateUtils;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Root;
 import org.hibernate.query.Query;
 
 import java.io.*;
@@ -46,8 +49,12 @@ public class ShelterManager implements Serializable {
         }
     }
 
-    public int size() {
-        Query<Integer> query = HibernateUtils.getSession().createQuery("SELECT COUNT(shelter) FROM AnimalShelter shelter", Integer.class);
+    public long size() {
+        CriteriaBuilder cb = HibernateUtils.getSession().getCriteriaBuilder();
+        CriteriaQuery<Long> cq = cb.createQuery(Long.class);
+        Root<AnimalShelter> root = cq.from(AnimalShelter.class);
+        cq.select(cb.count(root));
+        Query<Long> query = HibernateUtils.getSession().createQuery(cq);
         return query.getSingleResult();
     }
 

@@ -7,7 +7,7 @@ import java.util.List;
 
 public class ShelterTableModel extends AbstractTableModel {
     private List<AnimalShelter> shelters;
-    private final String[] columnNames = {"Name", "Capacity"};
+    private final String[] columnNames = {"Name", "Capacity", "Rating", "Rating Count"};
 
     public ShelterTableModel(List<AnimalShelter> shelters) {
         this.shelters = shelters;
@@ -38,6 +38,8 @@ public class ShelterTableModel extends AbstractTableModel {
         return switch (columnIndex) {
             case 0 -> shelter.getShelterName();
             case 1 -> shelter.getCapacity();
+            case 2 -> shelter.getAvgRating();
+            case 3 -> shelter.getRatingCount();
             default -> null;
         };
     }

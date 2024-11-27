@@ -2,16 +2,18 @@ package dev.twardosz;
 
 import jakarta.persistence.*;
 
+import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Entity
-public class Rating {
+public class Rating implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "shelter_id", nullable = false)
+    @ManyToOne
+    @JoinColumn(name = "shelter_id")
     private AnimalShelter shelter;
 
     @Column(nullable = false)
@@ -20,9 +22,9 @@ public class Rating {
     private String comment;
 
     @Column(nullable = false)
-    private Date date;
+    private LocalDateTime date;
 
-    public Rating(AnimalShelter shelter, int rating, String comment, Date date) {
+    public Rating(AnimalShelter shelter, int rating, String comment, LocalDateTime date) {
         this.shelter = shelter;
         this.rating = rating;
         this.comment = comment;
@@ -33,7 +35,7 @@ public class Rating {
         this.shelter = null;
         this.rating = 0;
         this.comment = "";
-        this.date = new Date();
+        this.date = LocalDateTime.now();
     }
 
     public Long getId() {
@@ -52,7 +54,7 @@ public class Rating {
         return comment;
     }
 
-    public Date getDate() {
+    public LocalDateTime getDate() {
         return date;
     }
 }

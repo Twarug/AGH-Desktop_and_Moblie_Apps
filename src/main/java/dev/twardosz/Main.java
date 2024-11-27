@@ -31,6 +31,11 @@ public class Main {
             happyPaws.addAnimal("Ruby", "Hamster", AnimalCondition.Healthy, 15, 97.11);
             happyPaws.addAnimal("Daisy", "Snake", AnimalCondition.Healthy, 4, 94.46);
 
+            happyPaws.addRating(5, "Odpowiedź na pytanie: czy to jest świat");
+            happyPaws.addRating(4, "Odpowiedź na pytanie: czy to jest świat");
+            happyPaws.addRating(3, "Odpowiedź na pytanie: czy to jest świat");
+            happyPaws.addRating(1, "Odpowiedź na pytanie: czy to jest świat");
+
             safeHaven.addAnimal("Luna", "Dog", AnimalCondition.Healthy, 3, 299.99);
             safeHaven.addAnimal("Charlie", "Goldfish", AnimalCondition.Quarantined, 2, 49.75);
             safeHaven.addAnimal("Bella", "Iguana", AnimalCondition.Sick, 5, 179.85);
@@ -41,6 +46,8 @@ public class Main {
             safeHaven.addAnimal("Milo", "Ferret", AnimalCondition.Healthy, 2, 150.20);
             safeHaven.addAnimal("Buddy", "Guinea Pig", AnimalCondition.Healthy, 6, 85.99);
             safeHaven.addAnimal("Lily", "Snake", AnimalCondition.Quarantined, 3, 120.50);
+
+            safeHaven.addRating(4, "Odpowiedź na pytanie: czy to jest świat");
         }
 
 //        manager.saveToFile("run/shelters.bin");
