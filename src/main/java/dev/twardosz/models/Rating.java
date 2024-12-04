@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 public class Rating implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id = null;
 
     @ManyToOne
     @JoinColumn(name = "shelter_id")

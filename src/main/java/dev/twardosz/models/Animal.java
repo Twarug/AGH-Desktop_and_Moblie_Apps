@@ -8,7 +8,7 @@ import java.io.Serializable;
 public class Animal implements Comparable<Animal>, Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id = null;
 
     @Column(nullable = false)
     private String name;

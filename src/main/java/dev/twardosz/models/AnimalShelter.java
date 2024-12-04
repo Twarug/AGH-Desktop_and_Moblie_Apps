@@ -5,15 +5,13 @@ import dev.twardosz.exception.ShelterIsFull;
 import jakarta.persistence.*;
 
 import java.io.*;
-import java.nio.file.Path;
-import java.time.LocalDateTime;
 import java.util.*;
 
 @Entity
 public class AnimalShelter implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id = null;
 
     @Column(nullable = false, unique = true)
     private String shelterName;
